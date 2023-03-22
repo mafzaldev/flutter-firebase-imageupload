@@ -41,18 +41,18 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool isImageSelected = true;
+  bool isUploading = false;
   String imageUrl = '';
 
   pickImage(ImageSource imageSource) async {
     XFile? image = await ImagePicker().pickImage(source: imageSource);
-    if (image == null) return;
 
+    if (image == null) return;
     CroppedFile? croppedImage = await ImageCropper().cropImage(
       sourcePath: image.path,
     );
-    if (croppedImage == null) return;
 
+    if (croppedImage == null) return;
     uploadImage(XFile(croppedImage.path));
   }
 
@@ -63,10 +63,14 @@ class _HomePageState extends State<HomePage> {
     Reference referenceFileImage =
         referenceDirectoryImage.child(uniqueImageName);
     try {
+      setState(() {
+        isUploading = true;
+      });
       await referenceFileImage.putFile(File(image!.path));
       var img = await referenceFileImage.getDownloadURL();
       setState(() {
         imageUrl = img;
+        isUploading = false;
       });
       log(imageUrl);
     } catch (e) {
@@ -88,26 +92,41 @@ class _HomePageState extends State<HomePage> {
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: Image.network(
-                      height: 250,
                       width: 400,
-                      fit: BoxFit.cover,
+                      height: 400,
+                      fit: BoxFit.contain,
                       imageUrl,
                     ),
                   )
                 : Container(
-                    height: 250,
+                    height: 400,
                     width: 400,
                     margin: const EdgeInsets.all(5),
                     color: const Color.fromARGB(255, 226, 226, 226),
                     child: Center(
-                        child: isImageSelected
+                        child: isUploading == false
                             ? const Text(
-                                "Image will be shown here",
+                                "Image will be displayed here",
                                 style: TextStyle(
                                     fontSize: 20, fontWeight: FontWeight.bold),
                               )
                             // ignore: dead_code
-                            : const CircularProgressIndicator()),
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: const [
+                                  CircularProgressIndicator(),
+                                  SizedBox(
+                                    height: 30,
+                                  ),
+                                  Text(
+                                    "Uploading Image...",
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              )),
                   ),
             const SizedBox(
               height: 40,
@@ -154,7 +173,13 @@ class _HomePageState extends State<HomePage> {
     ImageSource imageSource,
   ) {
     return InkWell(
-      onTap: () => pickImage(imageSource),
+      onTap: () {
+        pickImage(imageSource);
+        setState(() {
+          imageUrl = '';
+        });
+        Navigator.pop(context);
+      },
       child: Container(
         height: 75,
         width: 75,
@@ -168,7 +193,7 @@ class _HomePageState extends State<HomePage> {
         child: Center(
           child: Icon(
             icon,
-            size: 35,
+            size: 30,
           ),
         ),
       ),
