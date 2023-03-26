@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.flutter_firebase_imageupload">
    <application
-        android:label="flutter_firebase_imageupload"
+        android:label="Flutter Firebase Image Upload"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
